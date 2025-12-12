@@ -195,6 +195,74 @@
             color: #a38bff;
             margin-bottom: 10px;
         }
+        .language-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 15px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(255, 107, 171, 0.3);
+            border: 3px solid #ff9bc9;
+            backdrop-filter: blur(5px);
+        }
+        
+        .lang-btn {
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            border: 2px solid #ff9bc9;
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-family: 'Comic Sans MS', sans-serif;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            min-width: 60px;
+            min-height: 35px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lang-btn[data-lang="ru"] {
+            background: url('https://img.freepik.com/free-vector/illustration-russia-flag_53876-27016.jpg') center/cover, linear-gradient(to bottom, #fff, #f0f0f0);
+        }
+        
+        .lang-btn[data-lang="ua"] {
+            background: url('https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg') center/cover, linear-gradient(to bottom, #fff, #f0f0f0);
+        }
+        
+        .lang-btn[data-lang="en"] {
+            background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Flag_of_the_United_Kingdom_%283-5%29.svg/1280px-Flag_of_the_United_Kingdom_%283-5%29.svg.png') center/cover, linear-gradient(to bottom, #fff, #f0f0f0);
+        }
+        
+        .lang-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 107, 171, 0.4);
+            border-color: #ff6bab;
+        }
+        
+        .lang-btn.active {
+            border-color: #ff6bab;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+        
+        .lang-btn i {
+            margin-right: 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            padding: 3px;
+        }
         
         .chat-container {
             position: relative;
@@ -412,6 +480,19 @@
             h1 {
                 font-size: 2.5rem;
             }
+            
+            .language-switcher {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+            
+            .lang-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                min-width: 50px;
+                min-height: 30px;
+            }
         }
         
         @media (max-width: 600px) {
@@ -435,11 +516,40 @@
                 font-size: 1.8rem;
                 padding: 15px 25px;
             }
+            
+            .language-switcher {
+                top: 5px;
+                right: 5px;
+                flex-direction: column;
+                gap: 5px;
+                padding: 8px;
+                border-radius: 20px;
+            }
+            
+            .lang-btn {
+                padding: 5px 8px;
+                font-size: 0.75rem;
+                min-width: 45px;
+                min-height: 25px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="floating-hearts" id="heartsContainer"></div>
+    
+    <!-- Переключатель языка с флагами -->
+    <div class="language-switcher">
+        <button class="lang-btn active" data-lang="ru">
+            <i class="fas fa-flag"></i> RU
+        </button>
+        <button class="lang-btn" data-lang="ua">
+            <i class="fas fa-flag"></i> UA
+        </button>
+        <button class="lang-btn" data-lang="en">
+            <i class="fas fa-flag"></i> EN
+        </button>
+    </div>
     
     <audio id="meowSound" preload="auto">
         <source src="https://files.catbox.moe/ho9qjg.mp3" type="audio/mp3">
@@ -447,9 +557,9 @@
     
     <div class="container">
         <header>
-            <h1>🌸 Няшный чатикс для фанов Hello Kitty 🌸</h1>
-            <div class="subtitle">Общайтесь в атмосфере милоты,</div>
-            <div style="font-size: 1.1rem; color: #ff9bc9; margin-top: 10px;">
+            <h1 id="main-title">🌸 Няшный чатикс для фанов Hello Kitty 🌸</h1>
+            <div class="subtitle" id="subtitle">Общайтесь в атмосфере милоты,</div>
+            <div style="font-size: 1.1rem; color: #ff9bc9; margin-top: 10px;" id="friends-text">
                 <i class="fas fa-heart"></i> друзья <i class="fas fa-heart"></i>
             </div>
         </header>
@@ -485,12 +595,138 @@
         
         <footer>
             <div class="footer-text" id="meowButton">
-                <i class="fas fa-paw"></i> Meow-meow <i class="fas fa-paw"></i>
+                <i class="fas fa-paw"></i> <span id="meow-text">Meow-meow</span> <i class="fas fa-paw"></i>
+            </div>
+            <div class="copyright" id="copyright">
+                © 2024 Atop Chat. Все права защищены. Любите друг друга! 💕
             </div>
         </footer>
     </div>
 
     <script>
+        // Тексты на разных языках
+        const translations = {
+            ru: {
+                title: "🌸 Няшный чатикс для фанов Hello Kitty 🌸",
+                subtitle: "Общайтесь в атмосфере милоты,",
+                friends: "друзья",
+                meowButton: "Meow-meow",
+                copyright: "© 2024 Atop Chat. Все права защищены. Любите друг друга! 💕",
+                meowPopup: "Мяу!"
+            },
+            ua: {
+                title: "🌸 Милий чатик для фанатів Hello Kitty 🌸",
+                subtitle: "Спілкуйтеся в атмосфері милоти,",
+                friends: "друзі",
+                meowButton: "Няв-няв",
+                copyright: "© 2024 Atop Chat. Всі права захищені. Любіть одне одного! 💕",
+                meowPopup: "Няв!"
+            },
+            en: {
+                title: "🌸 Cute Chat for Hello Kitty Fans 🌸",
+                subtitle: "Chat in an atmosphere of cuteness,",
+                friends: "friends",
+                meowButton: "Meow-meow",
+                copyright: "© 2024 Atop Chat. All rights reserved. Love each other! 💕",
+                meowPopup: "Meow!"
+            }
+        };
+        
+        // Текущий язык (по умолчанию русский)
+        let currentLang = 'ru';
+        
+        // Функция для смены языка
+        function changeLanguage(lang) {
+            if (!translations[lang] || currentLang === lang) return;
+            
+            currentLang = lang;
+            
+            // Обновляем все текстовые элементы
+            document.getElementById('main-title').textContent = translations[lang].title;
+            document.getElementById('subtitle').textContent = translations[lang].subtitle;
+            document.getElementById('friends-text').innerHTML = `<i class="fas fa-heart"></i> ${translations[lang].friends} <i class="fas fa-heart"></i>`;
+            document.getElementById('meow-text').textContent = translations[lang].meowButton;
+            document.getElementById('copyright').textContent = translations[lang].copyright;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+            
+            // Сохраняем выбор в localStorage
+            localStorage.setItem('atop-chat-language', lang);
+            
+            // Создаем анимацию смены языка
+            createLanguageChangeEffect();
+        }
+        
+        // Функция для создания эффекта при смене языка
+        function createLanguageChangeEffect() {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    createClickHeart(
+                        Math.random() * window.innerWidth,
+                        Math.random() * window.innerHeight
+                    );
+                }, i * 100);
+            }
+            
+            // Создаем всплывающее сообщение
+            const langText = document.createElement('div');
+            const langNames = { ru: 'Русский', ua: 'Українська', en: 'English' };
+            langText.textContent = `💫 ${langNames[currentLang]}`;
+            langText.style.position = 'fixed';
+            langText.style.top = '50%';
+            langText.style.left = '50%';
+            langText.style.transform = 'translate(-50%, -50%)';
+            langText.style.color = '#ff6bab';
+            langText.style.fontSize = '2.5rem';
+            langText.style.fontWeight = 'bold';
+            langText.style.zIndex = '2000';
+            langText.style.pointerEvents = 'none';
+            langText.style.textShadow = '3px 3px 0 white';
+            langText.style.opacity = '0';
+            langText.style.animation = 'langChange 2s forwards';
+            
+            // Добавляем стили для анимации
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes langChange {
+                    0% {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(0.5);
+                    }
+                    20% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1.2);
+                    }
+                    40% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                    80% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(1.5);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(langText);
+            
+            // Удаляем текст через 2 секунды
+            setTimeout(() => {
+                if (langText.parentNode) {
+                    langText.parentNode.removeChild(langText);
+                }
+            }, 2000);
+        }
+        
         // ФУНКЦИЯ ДЛЯ СОЗДАНИЯ ПАДАЮЩИХ СЕРДЕЧЕК КАК СНЕГ (ВАРИАНТ 4)
         function createHearts() {
             const heartsContainer = document.getElementById('heartsContainer');
@@ -597,9 +833,9 @@
                                this.getBoundingClientRect().top);
             }
             
-            // Создаем всплывающий текст "Мяу!"
+            // Создаем всплывающий текст "Мяу!" на текущем языке
             const meowText = document.createElement('div');
-            meowText.innerHTML = 'Мяу! <i class="fas fa-heart" style="color: #ff6bab;"></i>';
+            meowText.innerHTML = `${translations[currentLang].meowPopup} <i class="fas fa-heart" style="color: #ff6bab;"></i>`;
             meowText.style.position = 'fixed';
             meowText.style.left = `${this.getBoundingClientRect().left + this.offsetWidth/2}px`;
             meowText.style.top = `${this.getBoundingClientRect().top - 50}px`;
@@ -651,7 +887,6 @@
             }, 300);
         });
         
-        // Функция для создания сердечек при клике (отдельные от фоновых)
         function createClickHeart(x, y) {
             const heart = document.createElement('div');
             heart.innerHTML = '❤';
@@ -663,7 +898,6 @@
             heart.style.zIndex = '1000';
             heart.style.pointerEvents = 'none';
             
-            // Анимация для сердечек при клике
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 3 + 2;
             const distance = Math.random() * 100 + 50;
@@ -695,10 +929,22 @@
             requestAnimationFrame(animateHeart);
         }
         
-        // Инициализация при загрузке страницы
         window.addEventListener('DOMContentLoaded', () => {
-            // Создаем падающие сердечки на фоне
             createHearts();
+            
+            // Восстанавливаем сохраненный язык из localStorage
+            const savedLang = localStorage.getItem('atop-chat-language');
+            if (savedLang && translations[savedLang]) {
+                changeLanguage(savedLang);
+            }
+            
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const lang = this.getAttribute('data-lang');
+                    changeLanguage(lang);
+                });
+            });
             
             // Добавляем эффект параллакса для шапки
             window.addEventListener('scroll', () => {
@@ -726,8 +972,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
